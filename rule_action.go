@@ -3,8 +3,13 @@ package actionlint
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
+)
+
+var (
+	fullLengthCommitSha = regexp.MustCompile("^(?:([[:xdigit:]]{40})|(sha256:[[:xdigit:]]{70}))$")
 )
 
 // RuleAction is a rule to check running action in steps of jobs.
@@ -79,6 +84,9 @@ func (rule *RuleAction) checkRepoAction(spec string, exec *ExecAction) {
 
 	if owner == "" || repo == "" || ref == "" {
 		rule.invalidActionFormat(exec.Uses.Pos, spec, "owner and repo and ref should not be empty")
+	}
+	if !fullLengthCommitSha.MatchString(ref) {
+		rule.invalidActionFormat(exec.Uses.Pos, spec, "ref should be a full-length commit SHA")
 	}
 
 	meta, ok := PopularActions[spec]

@@ -84,6 +84,9 @@ type LinterOptions struct {
 	// WorkingDir is a file path to the current working directory. When this value is empty, os.Getwd
 	// will be used to get a working directory.
 	WorkingDir string
+	// ActionRefsRequireFullSha is flag for whether the "ref" portion of "uses: {owner}/{repo}[/{path}]@{ref}"
+	// must be a full-length commit SHA, instead of a tag.
+	ActionRefsRequireFullSha bool
 	// More options will come here
 }
 
@@ -147,6 +150,10 @@ func NewLinter(out io.Writer, opts *LinterOptions) (*Linter, error) {
 			return nil, fmt.Errorf("invalid regular expression for ignore pattern %q: %s", s, err.Error())
 		}
 		ignore = append(ignore, r)
+	}
+
+	if !opts.ActionRefsRequireFullSha {
+		ignore = append(ignore, regexp.MustCompile("ref should be a full-length commit SHA"))
 	}
 
 	var formatter *ErrorFormatter
